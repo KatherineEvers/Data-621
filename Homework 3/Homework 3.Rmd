@@ -8,6 +8,14 @@ output: html_document
 ```{r}
 library(MASS)
 library(caret)
+library(ggplot2)
+library(dplyr)
+library(corrplot)
+library(reshape2)
+library(tidyr)
+library(pROC)
+library(gridExtra)
+library(pander)
 ```
 
 
@@ -47,6 +55,47 @@ hist(scaled_data$ptratio)
 hist(scaled_data$lstat)
 
 hist(scaled_data$medv)
+```
+
+```{r}
+dim(scaled_data)
+
+#summary stats
+sum_data <- summary(scaled_data)
+pander(sum_data, split.table = 100, style = 'rmarkdown')
+
+#missing values
+scaled_data %>%
+  summarise_all(list(~sum(is.na(.))))
+```
+```{r}
+density_data <- melt(scaled_data[c(1:13)])
+
+#density plots
+ggplot(density_data, aes(value)) + geom_density(fill = "blue") + facet_wrap(~variable, scales = "free")
+```
+```{r}
+#box plots
+plot1 <- ggplot(scaled_data, aes(x = target, y = indus, group=target)) + geom_boxplot() + coord_flip()
+plot2 <- ggplot(scaled_data, aes(x = target, y = nox, group=target)) + geom_boxplot() + coord_flip()
+plot3 <- ggplot(scaled_data, aes(x = target, y = age, group=target)) + geom_boxplot() + coord_flip()
+plot4 <- ggplot(scaled_data, aes(x = target, y = dis, group=target)) + geom_boxplot() + coord_flip()
+plot5 <- ggplot(scaled_data, aes(x = target, y = rad, group=target)) + geom_boxplot() + coord_flip()
+plot6 <- ggplot(scaled_data, aes(x = target, y = tax, group=target)) + geom_boxplot() + coord_flip()
+plot7 <- ggplot(scaled_data, aes(x = target, y = zn, group=target)) + geom_boxplot() + coord_flip()
+plot8 <- ggplot(scaled_data, aes(x = target, y = rm, group=target)) + geom_boxplot() + coord_flip()
+plot9 <- ggplot(scaled_data, aes(x = target, y = ptratio, group=target)) + geom_boxplot() + coord_flip()
+plot10 <- ggplot(scaled_data, aes(x = target, y = lstat, group=target)) + geom_boxplot() + coord_flip()
+plot11 <- ggplot(scaled_data, aes(x = target, y = medv, group=target)) + geom_boxplot() + coord_flip()
+plot12 <- ggplot(scaled_data, aes(x = target, y = chas, group=target)) + geom_boxplot() + coord_flip()
+
+grid.arrange(plot1,plot2,plot3,plot4,plot5,plot6,plot7,plot8,plot9,plot10,plot11,plot12, ncol=3)
+```
+
+```{r}
+#correlation matrix
+data_cor = cor(raw)
+corrplot(data_cor, type = "lower")
 ```
 
 ```{r}
