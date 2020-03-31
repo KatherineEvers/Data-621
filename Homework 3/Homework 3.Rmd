@@ -170,9 +170,47 @@ caret::confusionMatrix(caret_results$predictions,scaled_test$target, positive = 
 caret::confusionMatrix(step_aic_results_df$predictions,scaled_test$target, positive = "1")
 ```
 
+```{r}
+#Log transformation on skewed predictors
+transformation <- training_data %>% mutate_at(c("nox", "dis", "age", "zn", "lstat", "medv", "chas", "ptratio"), log)
 
+#potential models
+model_5 <- glm(target ~ indus + nox + age + dis + rad + tax, family = binomial(link = "logit"), data = transformation)
+summary(model_5) #AIC: 232.91 0.6610585
 
+model_6 <- glm(target ~ nox + dis + rad + tax, family = binomial(link = "logit"), data = transformation)
+summary(model_6) #AIC: 230.14 0.6591609
 
+#residual plots
+par(mfrow = c(2, 2))
+plot(model_2)
+
+hist(model_2$residuals)
+qqnorm(model_2$residuals)
+qqline(model_2$residuals)
+
+#test model
+trainingMinus <- transformation %>% select(-target)
+
+test_results <- predict(model_6, newdata = transformation, type = "response")
+
+df <- bind_cols(transformation, data.frame(scored_target = test_results)) %>% 
+    mutate(scored_target = if_else(scored_target > 0.5, 1, 0)) #%>% print
+
+#Performance
+cm <- confusionMatrix(as.factor(df$scored_target), as.factor(df$target), positive = "1", 
+    mode = "everything") %>% print #Accuracy : 0.8584 AUC:0.84
+
+curveRoc <- roc(df$target, df$scored_target)
+curveRoc$auc
+
+#plot(curveRoc, legacy.axes = T, main = "pROC")
+
+plot(curveRoc[[1]], 
+     main = "ROC Curve",
+     xlab = "False Postive Rate",
+     ylab = "True Positive Rate")
+```
 
 
 
